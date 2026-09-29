@@ -1,39 +1,23 @@
 # Homebrew tap for muzik
 
-`Formula/muzik.rb` installs the GitHub Release build of
-[`muzik`](https://github.com/TudorAndrei/muzik) on macOS arm64, plus the `ffmpeg`
-and `yt-dlp` binaries.
-
-## Install
+`Casks/muzik.rb` installs the [muzik](https://github.com/TudorAndrei/muzik)
+desktop app, `Muzik.app`, on Apple silicon Macs, with `ffmpeg` and `yt-dlp`.
 
 ```sh
-brew install TudorAndrei/muzik/muzik
+brew install --cask tudorandrei/muzik/muzik
 ```
 
-Then, once, for Bandcamp downloads:
+The command-line program comes from mise:
 
-```sh
-"$(brew --prefix)/opt/muzik/libexec/bin/playwright" install chromium
+```toml
+[tools]
+"github:TudorAndrei/muzik" = { version = "latest", matching = "muzik-cli" }
 ```
 
-## Update for a new release (maintainer)
+## Update for a new release
 
-For each new tag, edit `Formula/muzik.rb` in the tap:
-
-1. Change `url` to the new `muzik-<version>.tar.gz` release asset.
-2. Change `sha256` to that asset's hash:
-   `curl -sL <asset-url> | shasum -a 256`.
-3. Commit and push. Users get the update with `brew upgrade muzik`.
-
-## Notes and caveats
-
-- **Dependencies come from PyPI at install time.** `pip` resolves the Python
-  dependencies (including the `dearpygui` cp314 wheel) while `brew install` runs.
-  This reaches the network during the build step, so the formula is not
-  reproducible and would not pass a `homebrew-core` audit. That is acceptable for a
-  personal tap. A fully vendored, audit-clean formula becomes practical only if
-  `muzik` is published to PyPI.
-- **Binaries.** `ffmpeg` (with `ffprobe`) and `yt-dlp` are Homebrew dependencies,
-  so `brew` installs them. The user does not add them to `PATH` by hand.
-- **Chromium is not automatic.** Playwright's browser is a one-time manual install,
-  as shown above.
+1. Copy `packaging/homebrew/Casks/muzik.rb` from the muzik repository, or edit
+   `Casks/muzik.rb` here.
+2. Set `version` to the release version without the `v`.
+3. Set `sha256` to the value in `Muzik-v<version>-aarch64-apple-darwin.zip.sha256`.
+4. Run `brew audit --cask --strict tudorandrei/muzik/muzik`, then commit and push.
