@@ -1,31 +1,28 @@
-# Homebrew formula for muzik. Install with:
-#   brew install TudorAndrei/muzik/muzik
-#
-# The formula builds muzik from the GitHub Release source archive into a private
-# libexec virtual environment. pip fetches the Python dependencies from PyPI at
-# install time (dearpygui ships as a cp314 wheel there). ffmpeg, ffprobe, and
-# yt-dlp come from Homebrew. Bandcamp still needs a one-time Chromium install:
-#   "#{libexec}/bin/playwright" install chromium
+# Homebrew formula for the Rust CLI and GPUI app in the personal tap.
+# Install the current Rust port with: brew install --HEAD TudorAndrei/muzik/muzik
 class Muzik < Formula
-  include Language::Python::Virtualenv
-
-  desc "Download, split, tag, and organize music from Soulseek, YouTube, and Bandcamp"
+  desc "Download, split, tag, and organize music"
   homepage "https://github.com/TudorAndrei/muzik"
-  url "https://github.com/TudorAndrei/muzik/releases/download/v1.4.0/muzik-1.4.0.tar.gz"
-  sha256 "f06993b461bd1b70cc159e8f958117931662bb73e75ce726c98058185cb33878"
-  license :cannot_represent # proprietary: all rights reserved
+  head "https://github.com/TudorAndrei/muzik.git", branch: "main"
+  license "GPL-3.0-only"
 
+  depends_on :macos
+  depends_on "rust" => :build
   depends_on "ffmpeg"
-  depends_on "python@3.14"
   depends_on "yt-dlp"
+  depends_on "ovyerus/tap/bandsnatch"
+
+  def fetch
+    system "cargo", "fetch", *std_cargo_fetch_args
+  end
 
   def install
-    venv = virtualenv_create(libexec, "python3.14")
-    system venv.root/"bin/pip", "install", "--verbose", buildpath
-    bin.install_symlink libexec/"bin/muzik"
+    system "cargo", "build", "--release", "--locked", "--offline",
+      "-p", "muzik-cli", "-p", "muzik-gpui"
+    bin.install "target/release/muzik", "target/release/muzik-gpui"
   end
 
   test do
-    assert_match "muzik", shell_output("#{bin}/muzik --help")
+    assert_match "workflow", shell_output("#{bin}/muzik --help")
   end
 end
